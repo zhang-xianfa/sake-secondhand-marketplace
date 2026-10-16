@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <!-- 分类导航区块 -->
+<div class="mt-3  justify-content-center">
+  <div class="card shadow-none p-3"  style="width: 1300px; border-radius: 20px;">
+      <div class="row">
+      <!-- 分类导航 -->
+          <div class="col-20">
+              <div class="card shadow-none" style="height: 336px; border-radius: 20px; background-color: #f6f6f6;">
+                  <div class="container my-4" style="max-width: 300px;">
+                      <div class="list-group" style="font-size: 14px">
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/shouji.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=1" class="category-link">手机</a><span>/</span>
+                                  <a href="/?category=2" class="category-link">数码</a><span>/</span>
+                                  <a href="/?category=3" class="category-link">电脑</a>
+                              </div>
+                          </div>
+
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/fushi.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=4" class="category-link">服饰</a><span>/</span>
+                                  <a href="/?category=5" class="category-link">箱包</a><span>/</span>
+                                  <a href="/?category=6" class="category-link">运动</a>
+                              </div>
+                          </div>
+
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/jineng.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=7" class="category-link">技能</a><span>/</span>
+                                  <a href="/?category=8" class="category-link">卡券</a><span>/</span>
+                                  <a href="/?category=9" class="category-link">潮玩</a>
+                              </div>
+                          </div>
+
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/muying.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=10" class="category-link">母婴</a><span>/</span>
+                                  <a href="/?category=11" class="category-link">美妆</a><span>/</span>
+                                  <a href="/?category=12" class="category-link">个护</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/jiaju.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=13" class="category-link">家具</a><span>/</span>
+                                  <a href="/?category=14" class="category-link">家电</a><span>/</span>
+                                  <a href="/?category=15" class="category-link">家装</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/wenwan.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=16" class="category-link">文玩</a><span>/</span>
+                                  <a href="/?category=17" class="category-link">珠宝</a><span>/</span>
+                                  <a href="/?category=18" class="category-link">礼品</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/shipin.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=19" class="category-link">食品</a><span>/</span>
+                                  <a href="/?category=20" class="category-link">宠物</a><span>/</span>
+                                  <a href="/?category=21" class="category-link">花卉</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/tushu.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=22" class="category-link">图书</a><span>/</span>
+                                  <a href="/?category=23" class="category-link">游戏</a><span>/</span>
+                                  <a href="/?category=24" class="category-link">音像</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/qiche.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=25" class="category-link">汽车</a><span>/</span>
+                                  <a href="/?category=26" class="category-link">电车</a><span>/</span>
+                                  <a href="/?category=27" class="category-link">租房</a>
+                              </div>
+                          </div>
+                          <div class="category-item d-flex">
+                              <img src="{{ url_for('static', filename='png/wujin.png')}}" class="category-icon">
+                              <div class="d-flex flex-wrap gap-1">
+                                  <a href="/?category=28" class="category-link">五金</a><span>/</span>
+                                  <a href="/?category=29" class="category-link">设备</a><span>/</span>
+                                  <a href="/?category=30" class="category-link">农牧</a>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-60">
+              <img src="{{ url_for('static', filename='png/haibao.png')}}" class="img-fluid" style="height: 336px; width: auto; border-radius: 20px;">
+          </div>
+          <div class="d-flex flex-column col-20">
+              <div class="d-flex flex-grow-1">
+                  <button onclick="window.location.href='{{ url_for('goods.publish') }}'" class="btn btn-sm flex-grow-1 mb-2 text-white" style="font-family: 'STHupo', '华文琥珀', sans-serif; background-color: rgba(255,165,0,0.8); border-radius: 20px; font-size: 30px">发闲置</button>
+              </div>
+              <div class="d-flex flex-grow-1 " style="position: relative; ">
+                  <button onclick="window.location.href='{{ url_for('notification.index') }}'" class="btn btn-sm flex-grow-1 mt-2 text-white" style="font-family: 'STHupo', '华文琥珀', sans-serif; background-color: rgba(173,255,47,0.8); border-radius: 20px; font-size: 30px">消息</button>
+                  {% if current_user.is_authenticated %}
+                      {% set unread_count = current_user.notifications_received.filter_by(is_read=False).count() %}
+                      {% if unread_count > 0 %}
+                          <span class="unread-badge" style="position: absolute; z-index: 10;">{{ unread_count }}</span>
+                      {% endif %}
+                  {% endif %}
+              </div>
+          </div>
+          </div>
+      </div>
+  </div>
+</div>
+</div>
+    <div class="d-flex justify-content-center mt-3">
+        <div class="card shadow-none"  style="width: 1300px; border-radius: 20px;">
+            <div class="p-3">
+                <div class="row row-cols-5 g-3">
+                    <div style="width: 1300px;">
+                        <form class="row" method="get">
+                            <div class="col">
+                                <select class="form-select" name="category" style="border-radius: 20px;">
+                                    <option value="">按分类</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col">
+                                <input type="number" step="0.01" name="price_max" class="form-control" placeholder="最⾼价格" style="border-radius: 20px;">
+                            </div>
+                            <div class="col">
+                                <select class="form-select" name="condition" style="border-radius: 20px;">
+                                    <option value="">按成⾊</option>
+                                    <option value="全新">全新</option>
+                                    <option value="九成新">九成新</option>
+                                    <option value="⼋成新">⼋成新</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary px-4" style="border-radius: 20px;background-color: #ffe60f; color: #000;">筛选</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% for item in goods.items %}
+                        <div class="col">
+                            <div class="card shadow-sm h-100" style="border-radius: 20px;">
+                                <a href="/goods/{{ item.id }}" class="block text-decoration-none text-dark">
+{#                                <img src="{{ item.image_url }}" class="card-img-top product-img" style="border-radius:20px;" alt="{{ item.title }}">#}
+                                  {# 【修改点：显示商品的第一张图片】 #}
+                                {% if item.images %} {# 检查商品是否有图片 #}
+                                    {% set first_image = item.images|sort(attribute='order')|first %} {# 获取第一张图片 #}
+                                    <img src="{{ first_image.image_url }}" class="card-img-top product-img" style="border-radius:20px;" alt="{{ item.title }}">
+                                {% else %}
+                                    {# 如果没有图片，显示默认图片 #}
+                                    <img src="{{ url_for('static', filename='default_goods_image.png') }}" class="card-img-top product-img" style="border-radius:20px;" alt="无图片">
+                                {% endif %}
+
+                                <div class="card-body" href="/goods/{{ item.id }}">
+                                    <h5 class="card-title">{{ item.title }}</h5>
+                                    <div class="price-tag">
+                                        <span class="currency">¥</span>
+                                        <span class="price">{{ item.price }}</span>
+                                    </div>
+                                </div>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <nav class="d-flex justify-content-center mt-3">
+        <ul class="pagination">
+            {% if goods.has_prev %}
+                <li class="page-item"><a class="page-link" href="?page={{ goods.prev_num }}">上⼀⻚</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ goods.page }}/{{ goods.pages }}</span></li>
+            {% if goods.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ goods.next_num }}">下⼀⻚</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}

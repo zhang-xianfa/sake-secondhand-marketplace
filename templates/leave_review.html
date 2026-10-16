@@ -1,0 +1,159 @@
+{# templates/payment/leave_review.html #}
+{% extends 'base.html' %}
+
+{% block title %}评价订单 - 校园交易平台{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">评价订单 <span class="badge bg-secondary ms-2">#{{ order.order_no }}</span></h4>
+                </div>
+
+                <div class="card-body">
+                    <!-- 商品信息概览 -->
+                    <div class="border rounded p-4 mb-4 bg-light">
+                        <h5 class="mb-3">商品: {{ order.goods.title }}</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                {% set first_image = order.goods.images|sort(attribute='order')|first %}
+                                {% if first_image %}
+                                    <img src="{{ first_image.image_url }}" alt="{{ order.goods.title }}" class="img-fluid rounded">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片" class="img-fluid rounded">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">订单金额: ¥{{ order.amount }}</p>
+                                <p class="mb-1">卖家: {{ order.seller.username }}</p>
+                                <p class="mb-0 text-muted small">订单完成时间: {{ order.completed_time.strftime('%Y-%m-%d %H:%M') if order.completed_time else 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3">请为本次交易打分</h5>
+                    <form method="POST" action="{{ url_for('payment.leave_review', order_id=order.id) }}">
+                        <div class="mb-4">
+                            <label class="form-label d-block">综合评分 <span class="text-danger">*</span></label>
+                            <div class="rating-stars">
+                                {# 使用 radio input 实现星级选择，倒序排列以配合CSS的 ~ 选择器 #}
+                                {% for i in range(5, 0, -1) %}
+                                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if loop.first %}checked{% endif %} />
+                                    <label for="star{{ i }}" title="{{ i }}星"></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="content" class="form-label">评价内容 (可选)</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" placeholder="请分享您的交易体验，例如商品描述是否相符、卖家服务态度等..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{{ url_for('payment.order_detail', order_id=order.id) }}" class="btn btn-secondary px-5">
+                                <i class="fas fa-arrow-left me-1"></i> 返回订单详情
+                            </a>
+                            <button type="submit" class="btn btn-success px-5">
+                                提交评价 <i class="fas fa-paper-plane ms-1"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light">
+                    <div class="alert alert-info mb-0">
+                        <h6 class="mb-2"><i class="fas fa-info-circle me-1"></i> 评价须知</h6>
+                        <ul class="mb-0">
+                            <li>您的评价将有助于其他用户了解卖家信誉和商品质量。</li>
+                            <li>请客观、真实地评价，禁止恶意差评或刷单行为。</li>
+                            <li>评价提交后不可修改。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{# 引入 Font Awesome 图标库 #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+/* 交易进度样式（如果需要，可以从 payment.html 复制过来） */
+.transaction-progress {
+    margin-top: 20px;
+}
+.progress-step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
+}
+.progress-step.active {
+    background-color: #28a745;
+    color: white;
+}
+.step-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+.transaction-progress .col-3:not(:last-child) .progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: -1;
+}
+.transaction-progress .col-3:not(:last-child) .progress-step.active::after {
+    background-color: #28a745;
+}
+
+
+/* 星星评分样式 */
+.rating-stars {
+    display: inline-block;
+    direction: rtl; /* 使星星从右到左排列，这样 CSS 的 ~ 选择器才能生效 */
+}
+
+.rating-stars input[type="radio"] {
+    display: none; /* 隐藏原始的 radio 按钮 */
+}
+
+.rating-stars label {
+    font-size: 2.5em; /* 星星大小 */
+    color: #ccc; /* 默认颜色 */
+    cursor: pointer;
+    padding: 0 5px; /* 星星间距 */
+    transition: color 0.2s ease-in-out;
+}
+
+/* 悬停时，当前星星和它右边的所有星星变色 */
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: #ffc107; /* 选中和悬停时的颜色 (Bootstrap yellow) */
+}
+
+/* 选中时，当前星星和它右边的所有星星变色 */
+.rating-stars input[type="radio"]:checked ~ label {
+    color: #ffc107;
+}
+
+/* 隐藏部分 */
+.hidden {
+    display: none !important;
+}
+</style>
+{% endblock %}

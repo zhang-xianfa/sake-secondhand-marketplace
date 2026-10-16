@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑个人信息</title>
+  <!-- 引入 Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- 引入 Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white p-5 rounded-lg shadow-md" style="border-radius: 20px;">
+      <h1 class="text-2xl font-bold text-center mb-2">编辑个人信息</h1>
+      <p class="text-center text-gray-600 mb-8">更新你的资料，让账户更完善</p>
+      <form method="post" class="space-y-6">
+        <!-- 用户名输入 -->
+        <div class="relative group">
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">
+            用户名
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-500 group-focus-within:text-yellow-600 transition-colors">
+              <i class="fa fa-user"></i>
+            </span>
+            <input type="text" id="username" name="username" value="{{ user.username }}"
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-yellow-200
+                                    focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100
+                                    transition-all duration-200 outline-none bg-white"
+              placeholder="设置显示名称" required>
+          </div>
+        </div>
+
+        <!-- 邮箱输入 -->
+        <div class="relative group">
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
+            电子邮箱
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-500 group-focus-within:text-yellow-600 transition-colors">
+              <i class="fa fa-envelope"></i>
+            </span>
+            <input type="email" id="email" name="email" value="{{ user.email or '' }}"
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-yellow-200
+                                    focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100
+                                    transition-all duration-200 outline-none bg-white"
+              placeholder="用于登录和通知" required>
+          </div>
+        </div>
+
+        <!-- 分隔线 -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-yellow-200"></div>
+          </div>
+        </div>
+
+        <!-- 联系电话（选填） -->
+        <div class="relative group">
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1.5">
+            联系电话
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-500 group-focus-within:text-yellow-600 transition-colors">
+              <i class="fa fa-phone"></i>
+            </span>
+            <!-- 确认表单字段名称 -->
+                <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}"
+                        class="w-full pl-10 pr-4 py-3 rounded-lg border border-yellow-200
+                                focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100
+                                transition-all duration-200 outline-none bg-white"
+                        placeholder="方便交易联系">
+          </div>
+        </div>
+
+        <!-- 表单说明区 -->
+        <div class="bg-yellow-100 p-4 rounded-lg text-sm text-gray-600">
+          <p class="flex items-start">
+            <i class="fa fa-info-circle text-yellow-600 mt-0.5 mr-2"></i>
+            <span>请确保填写真实信息，这将有助于提高您在平台上的可信度和交易成功率</span>
+          </p>
+        </div>
+
+
+        <!-- 按钮区域 -->
+        <div class="pt-4 flex gap-4">
+          <button type="submit" style="background-color: #FFC107; color: #212529; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; transition: all 0.3s; font-weight: 500;">
+            <i class="fa fa-check mr-1"></i> 保存更改
+          </button>
+          <a href="{{ url_for('profile.index') }}" style="background-color: #F8F9FA; color: #495057; border: 1px solid #E9ECEF; padding: 10px 24px; border-radius: 6px; cursor: pointer; transition: all 0.3s; font-weight: 500;">
+            <i class="fa fa-times mr-1"></i> 取消
+          </a>
+        </div>
+      </form>
+      <p class="text-center text-gray-600 mt-8">信息仅用于平台交易，我们将保护你的隐私</p>
+    </div>
+  </div>
+</body>
+
+</html>
+{% endblock %}

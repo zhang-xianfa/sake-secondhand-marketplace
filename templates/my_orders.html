@@ -1,0 +1,107 @@
+{# templates/payment/my_orders.html #}
+{% extends 'base.html' %}
+
+{% block title %}我的订单 - 校园交易平台{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">我的订单</h2>
+
+    <ul class="nav nav-tabs mb-3" id="myOrdersTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="buying-tab" data-bs-toggle="tab" data-bs-target="#buyingOrders" type="button" role="tab" aria-controls="buyingOrders" aria-selected="true">
+                我购买的
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="selling-tab" data-bs-toggle="tab" data-bs-target="#sellingOrders" type="button" role="tab" aria-controls="sellingOrders" aria-selected="false">
+                我出售的
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myOrdersTabContent">
+        <div class="tab-pane fade show active" id="buyingOrders" role="tabpanel" aria-labelledby="buying-tab">
+            <h4 class="mb-3">我购买的订单</h4>
+            {% if buying_orders %}
+                <div class="list-group">
+                    {% for order in buying_orders %}
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h5 class="mb-1">商品: {{ order.goods.title }}</h5>
+                                <p class="mb-1">订单号: {{ order.order_no }}</p>
+                                <p class="mb-1">金额: ¥{{ order.amount }}</p>
+                                <p class="mb-1">状态:
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">待支付</span>
+                                    {% elif order.status == 'paid' %}
+                                        <span class="badge bg-info text-dark">已支付</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-success">已完成</span>
+                                    {% elif order.status == 'canceled' %}
+                                        <span class="badge bg-danger">已取消</span>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-0">创建时间: {{ order.create_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <a href="{{ url_for('payment.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary mb-2">查看详情</a>
+                                {# 买家：订单完成且未评价，显示“去评价”按钮 #}
+                                {% if order.status == 'completed' and not order.is_reviewed %}
+                                    <a href="{{ url_for('payment.leave_review', order_id=order.id) }}" class="btn btn-sm btn-success">去评价</a>
+                                {% elif order.status == 'completed' and order.is_reviewed %}
+                                    <button class="btn btn-sm btn-secondary" disabled>已评价</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>您还没有购买任何商品。</p>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="sellingOrders" role="tabpanel" aria-labelledby="selling-tab">
+            <h4 class="mb-3">我出售的订单</h4>
+            {% if selling_orders %}
+                <div class="list-group">
+                    {% for order in selling_orders %}
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h5 class="mb-1">商品: {{ order.goods.title }}</h5>
+                                <p class="mb-1">订单号: {{ order.order_no }}</p>
+                                <p class="mb-1">金额: ¥{{ order.amount }}</p>
+                                <p class="mb-1">状态:
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">待支付</span>
+                                    {% elif order.status == 'paid' %}
+                                        <span class="badge bg-info text-dark">已支付</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-success">已完成</span>
+                                    {% elif order.status == 'canceled' %}
+                                        <span class="badge bg-danger">已取消</span>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-0">创建时间: {{ order.create_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <a href="{{ url_for('payment.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary mb-2">查看详情</a>
+                                {# 卖家：订单已支付，显示“标记为完成”按钮 #}
+                                {% if order.status == 'paid' %}
+                                    <form action="{{ url_for('payment.complete_order', order_id=order.id) }}" method="post" onsubmit="return confirm('确定要标记此订单为完成吗？请确认交易已成功。');">
+                                        <button type="submit" class="btn btn-sm btn-success">标记为完成</button>
+                                    </form>
+                                {% elif order.status == 'completed' %}
+                                    <button class="btn btn-sm btn-secondary" disabled>已完成</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>您还没有出售任何商品。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{# templates/publish.html #}
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center pt-2">
+            <div class="card shadow-sm p-5" style="width: 650px; border-radius: 20px;">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-center mb-4">发闲置</h3>
+                    <form method="post" enctype="multipart/form-data">
+                        <label>标题 :</label><input type="text" name="title" class="form-control" placeholder="如：⼆⼿笔记本电脑" required><br>
+
+                        <label>上传图片 (可多选)</label>
+                        <input type="file" name="image_files" class="form-control" multiple required > {# <-- 保留这个，它是多文件上传的，name="image_files" #}
+
+                        {# 【修改点2-1：删除以下这行多余的图片上传输入框】 #}
+                        {# <label>上传图片</label><input type="file" name="image_file" class="form-control"  required > #}
+
+                        <div class="text-center mt-2">
+                        <small class="text-muted" style="font-size: 14px;">支持JPG，PNG，GIF，JPEG格式，可上传多张图片</small> {# 【修改点2-2：更新提示信息】 #}
+                        <br>
+                        </div>
+                        <label>描述 :</label><textarea name="description" class="form-control" placeholder="详细描述商品的情况..."></textarea><br>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">价格 ( 元 )</label>
+                                <input type="number" step="0.01" name="price" class="form-control" required>
+                            </div>
+                            <div class="col">
+                                <label class="form-label">成⾊</label>
+                                <select name="condition" class="form-select">
+                                    <option value="">请选择</option>
+                                    <option>全新</option>
+                                    <option>九成新</option>
+                                    <option>⼋成新</option>
+                                    <option>七成新</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label>分类 :</label>
+                        <div class="mb-3">
+                            <select  class="form-select"  id="categorySelect" name="category_id">
+                             <option value="">请选择分类</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select><br>
+                            <button type="submit" class="btn btn-primary w-100 mt-4">发布</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

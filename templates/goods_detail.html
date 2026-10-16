@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% block content %}
+        <div class="card shadow-none" style="width: 1300px; border-radius: 20px;">
+        <div class="row">
+            <div class="col-md-6 m-3">
+                <div class="card shadow-none" style="width: 100%; height: 580px; border-radius: 20px; background-color: #f6f6f6; overflow: hidden;">
+                     {# 【使用 Bootstrap Carousel 轮播图展示多张图片】 #}
+                    {% if goods.images %}
+                    <div id="goodsImageCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            {# 轮播图指示器：根据图片数量生成按钮 #}
+                            {% for image in goods.images|sort(attribute='order') %} {# 排序以确保顺序 #}
+                            <button type="button" data-bs-target="#goodsImageCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{{ 'active' if loop.first }}" aria-current="{{ 'true' if loop.first }}" aria-label="Slide {{ loop.index }}"></button>
+                            {% endfor %}
+                        </div>
+                        <div class="carousel-inner h-100">
+                            {# 轮播图内容：遍历所有图片 #}
+                            {% for image in goods.images|sort(attribute='order') %}
+                            <div class="carousel-item h-100 {{ 'active' if loop.first }}">
+                                <img src="{{ image.image_url }}" class="d-block w-100 h-100 object-fit-contain" alt="{{ goods.title }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {# 轮播图控制按钮 #}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#goodsImageCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#goodsImageCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                    {% else %}
+                    {# 【如果没有图片，显示默认图片】 #}
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #eee;">
+                        <img src="{{ url_for('static', filename='default_goods_image.png') }}" class="img-fluid" alt="无图片" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                    </div>
+                    {% endif %}
+
+{#                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">#}
+{#                        <img src="{{ goods.image_url }}" class="img-fluid" alt="{{ goods.title }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">#}
+{#                    </div>#}
+                </div>
+            </div>
+            <div class="col-md-5 m-3">
+                <div class="price-tag">
+                    <span class="currency">¥</span>
+                    <span class="price" style="height: 36px">{{ goods.price }}</span>
+                </div>
+
+
+
+            <div class="mt-4" style="font-size: larger">
+            <p>{{ goods.title }}</p>
+            <p>{{ goods.description }}</p>
+            <p>{{ goods.condition }}</p>
+            <p>{{ goods.create_time.strftime('%Y-%m-%d') }}</p>
+            <div>
+                <p>电话：{{ goods.seller.phone }}</p>
+                <p>邮箱：{{ goods.seller.email }}</p>
+                {% if current_user.is_authenticated and current_user.id != goods.seller.id %}
+                <form action="{{ url_for('chat.initiate_chat',goods_id=goods.id) }}" method="post" style="display:inline-block;">
+                    <button type="submit" class="btn btn-info mt-2">与卖家私聊</button>
+                </form>
+                     {# 新增交易按钮 #}
+                {% if not goods.is_sold %}
+                    <a href="{{ url_for('goods.transaction', goods_id=goods.id) }}" class="btn btn-success mt-2 ms-2">
+                        发起交易
+                    </a>
+                {% endif %}
+                {% elif not current_user.is_authenticated %}
+                <p>请<a href="{{ url_for('auth.login',next=request.path) }}">登录</a>以与卖家私聊</p>
+                {% endif %}
+            </div>
+            </div>
+
+            {# 查看商品销售状态#}
+            {% if goods.is_sold %}
+            <span class="btn btn-warning">已售</span>
+            {% else %}
+            <span class="btn btn-danger">在售</span>
+            {% endif %}
+             {# 【修改点：收藏按钮，检查用户是否已登录】 #}
+            {% if current_user.is_authenticated %}
+                {% if goods in current_user.favorites %}
+                <a href="{{ url_for('goods.unfavorite', goods_id=goods.id) }}" class="btn btn-secondary">取消收藏</a>
+                {% else %}
+                <a href="{{ url_for('goods.favorite', goods_id=goods.id) }}" class="btn btn-primary">收藏</a>
+                {% endif %}
+            {% else %}
+            {# 如果未登录，显示登录以收藏的提示 #}
+            <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary">登录以收藏</a>
+            {% endif %}
+            </div>
+
+{#            #}
+{#            {% if goods in current_user.favorites %}#}
+{#            <a href="{{ url_for('goods.unfavorite', goods_id=goods.id) }}" class="btn btn-secondary">取消收藏</a>#}
+{#            {% else %}#}
+{#            <a href="{{ url_for('goods.favorite', goods_id=goods.id) }}" class="btn btn-primary">收藏</a>#}
+{#            {% endif %}#}
+{#            </div>#}
+        </div>
+        </div>
+
+
+    <hr>
+    <h4>留⾔区</h4>
+{% if current_user.is_authenticated %}
+    <form method="post" action="/goods/{{ goods.id }}/message">
+        <div class="mb-3">
+            <textarea class="form-control" name="content" rows="3" placeholder="留下你的留⾔..."></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">提交留⾔</button>
+    </form>
+{% else %}
+    <p>请<a href="/login">登录</a>后留⾔</p>
+{% endif %}
+    <hr>
+
+
+    <!-- 留言列表（包含多层嵌套回复功能） -->
+    {% macro render_replies(reply_items, parent_id, depth, parent_user) %}
+        {% if depth <= 20 and reply_items %}
+        <div class="replies mt-2 border-top pt-2" style="margin-left: {{ depth * 15 }}px;">
+            {% for reply in reply_items %}
+            <div class="reply-item mb-3 p-3 bg-light rounded" data-reply-id="{{ reply.id }}" data-parent-id="{{ parent_id }}">
+                <p class="mb-1 small">
+                    <strong>{{ reply.user.username }}</strong> 回复
+                    <strong>{{ parent_user.username }}</strong>
+                    <span class="text-muted ms-2">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+
+                    {# 回复删除按钮 - 仅作者可见 #}
+                    {% if current_user.is_authenticated and current_user.id == reply.user.id %}
+                    <button class="delete-btn btn btn-sm btn-outline-danger ms-2"
+                            data-type="reply"
+                            data-id="{{ reply.id }}"
+                            data-url="{{ url_for('goods.delete_reply', reply_id=reply.id) }}">
+                        删除
+                    </button>
+                    {% endif %}
+                </p>
+                <p class="mb-0">{{ reply.content }}</p>
+
+                <!-- 回复点赞按钮 -->
+                <div class="like-section mt-1">
+                    <button class="like-btn reply-like-btn" data-reply-id="{{ reply.id }}">
+                        <span class="heart {% if current_user.is_authenticated and reply.likes.filter_by(user_id=current_user.id).first() %}liked{% endif %} {% if reply.likes.count() == 0 %}empty{% endif %}">
+                            {% if reply.likes.count() == 0 %}♡{% else %}♥{% endif %}
+                        </span>
+                        <span class="like-count">{{ reply.likes.count() if reply.likes.count() > 0 else '' }}</span>
+                    </button>
+
+                    <!-- 回复按钮（只有当深度小于20时显示） -->
+                    {% if depth < 20 %}
+                    <button class="reply-toggle-btn btn btn-sm btn-outline-secondary ms-3"
+                            data-reply-id="{{ reply.id }}"
+                            data-depth="{{ depth }}">
+                        回复
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- 回复表单 -->
+                <div class="reply-form mt-3" id="reply-form-{{ reply.id }}" style="display: none;">
+                    <form method="post" action="{{ url_for('goods.reply_to_message', goods_id=goods.id, message_id=reply.id) }}">
+                        <input type="hidden" name="parent_id" value="{{ reply.id }}">
+                        <input type="hidden" name="depth" value="{{ depth + 1 }}">
+                        <div class="mb-2">
+                            <textarea class="form-control" name="content" rows="2" placeholder="回复这条内容..."></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-primary" type="submit">发送回复</button>
+                        <button type="button" class="btn btn-sm btn-secondary ms-2 reply-cancel-btn" data-reply-id="{{ reply.id }}">
+                            取消
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 递归渲染子回复，传递当前回复的用户作为父用户 -->
+                {{ render_replies(reply.replies.order_by('created_at'), reply.id, depth + 1, reply.user) }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endmacro %}
+
+    {% for msg in parent_messages.items %}
+        <!-- 主留言 -->
+        <div class="card mb-3 message-item" data-message-id="{{ msg.id }}">
+            <div class="card-body">
+                <p class="card-text">{{ msg.content }}</p>
+                <footer class="blockquote-footer">
+                    {{ msg.user.username }} 于 {{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}
+
+                    {# 留言删除按钮 - 仅作者可见 #}
+                    {% if current_user.is_authenticated and current_user.id == msg.user.id %}
+                    <button class="delete-btn btn btn-sm btn-outline-danger ms-2"
+                            data-type="message"
+                            data-id="{{ msg.id }}"
+                            data-url="{{ url_for('goods.delete_message', message_id=msg.id) }}">
+                        删除
+                    </button>
+                    {% endif %}
+                </footer>
+
+                <!-- 点赞按钮区域 -->
+                <div class="like-section mt-2">
+                    <button class="like-btn" data-message-id="{{ msg.id }}">
+                        <span class="heart {% if current_user.is_authenticated and msg.likes.filter_by(user_id=current_user.id).first() %}liked{% endif %} {% if msg.likes.count() == 0 %}empty{% endif %}">
+                            {% if msg.likes.count() == 0 %}♡{% else %}♥{% endif %}
+                        </span>
+                        <span class="like-count">{{ msg.likes.count() if msg.likes.count() > 0 else '' }}</span>
+                    </button>
+
+                    <!-- 回复按钮 -->
+                    <button class="reply-toggle-btn btn btn-sm btn-outline-secondary ms-3" data-message-id="{{ msg.id }}" data-depth="1">
+                        回复
+                    </button>
+                </div>
+
+                <!-- 回复表单 -->
+                <div class="reply-form mt-3" id="reply-form-{{ msg.id }}" style="display: none;">
+                    <form method="post" action="{{ url_for('goods.reply_to_message', goods_id=goods.id, message_id=msg.id) }}">
+                        <input type="hidden" name="parent_id" value="{{ msg.id }}">
+                        <input type="hidden" name="depth" value="1">
+                        <div class="mb-2">
+                            <textarea class="form-control" name="content" rows="2" placeholder="回复这条留言..."></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-primary" type="submit">发送回复</button>
+                        <button type="button" class="btn btn-sm btn-secondary ms-2 reply-cancel-btn" data-message-id="{{ msg.id }}">
+                            取消
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 渲染一级回复，传递主留言的用户作为父用户 -->
+                {{ render_replies(msg.replies.order_by('created_at'), msg.id, 1, msg.user) }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- 分页控件 -->
+    <nav>
+        <ul class="pagination">
+    {% if parent_messages.has_prev %}
+        <li class="page-item"><a class="page-link" href="?page={{ parent_messages.prev_num }}">上⼀⻚</a></li>
+    {% endif %}
+            <li class="page-item active"><span class="page-link">{{ parent_messages.page }}/{{ parent_messages.pages }}</span></li>
+            {% if parent_messages.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ parent_messages.next_num }}">下⼀⻚</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+<!-- 样式部分 -->
+<style>
+/* 原有样式保持不变 */
+.like-section {
+    display: flex;
+    align-items: center;
+}
+
+.like-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #666;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.like-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.heart {
+    font-size: 1.3em;
+    margin-right: 6px;
+    transition: all 0.3s ease;
+}
+
+.heart:not(.liked):not(.empty) {
+    color: #999;
+}
+
+.heart.empty:not(.liked) {
+    color: #999;
+}
+
+.heart.liked {
+    color: #e74c3c;
+    animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.like-count {
+    font-size: 0.9em;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+/* 回复相关样式 */
+.reply-toggle-btn {
+    transition: all 0.2s;
+}
+
+.reply-toggle-btn:hover {
+    background-color: #e9ecef;
+}
+
+.replies {
+    transition: margin-left 0.3s ease;
+}
+
+.reply-item {
+    font-size: 0.95em;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reply-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.reply-like-btn {
+    padding: 2px 8px;
+    font-size: 0.9em;
+}
+
+.replies .replies .reply-item {
+    background-color: #f0f0f0;
+}
+
+{% for i in range(10, 20) %}
+.replies:nth-child(n+{{ i }}) .reply-item {
+    background-color: #eaeaea;
+    font-size: 0.9em;
+}
+{% endfor %}
+
+/* 删除按钮样式 */
+.delete-btn {
+    transition: all 0.2s;
+    padding: 2px 8px;
+}
+
+.delete-btn:hover {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* 加载动画 */
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(0,0,0,.3);
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+{# 新增轮播图图片样式 #}
+.carousel-item img {
+    height: 580px; /* 确保图片高度与容器一致 */
+    object-fit: contain; /* 保持图片比例并适应容器 */
+}
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 原有点赞功能保持不变
+    document.querySelectorAll('.like-btn:not(.reply-like-btn)').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            {% if not current_user.is_authenticated %}
+                alert('请先登录才能点赞');
+                return;
+            {% endif %}
+
+            const messageId = this.getAttribute('data-message-id');
+            const heartElem = this.querySelector('.heart');
+            const countElem = this.querySelector('.like-count');
+
+            fetch(`/goods/message/like/${messageId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrf_token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateLikeDisplay(heartElem, countElem, data);
+                }
+            })
+            .catch(error => {
+                console.error('点赞失败:', error);
+                alert('操作失败，请稍后再试');
+            });
+        });
+    });
+
+    document.querySelectorAll('.reply-like-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            {% if not current_user.is_authenticated %}
+                alert('请先登录才能点赞');
+                return;
+            {% endif %}
+
+            const replyId = this.getAttribute('data-reply-id');
+            const heartElem = this.querySelector('.heart');
+            const countElem = this.querySelector('.like-count');
+
+            fetch(`/goods/reply/like/${replyId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrf_token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateLikeDisplay(heartElem, countElem, data);
+                }
+            })
+            .catch(error => {
+                console.error('回复点赞失败:', error);
+                alert('操作失败，请稍后再试');
+            });
+        });
+    });
+
+    // 原有回复功能保持不变
+    document.querySelectorAll('.reply-toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-message-id') || this.getAttribute('data-reply-id');
+            const form = document.getElementById(`reply-form-${targetId}`);
+            const depth = parseInt(this.getAttribute('data-depth'));
+
+            if (depth >= 20) {
+                alert('已达到最大回复层数（20层），无法继续回复');
+                return;
+            }
+
+            document.querySelectorAll('.reply-form').forEach(f => {
+                if (f.id !== `reply-form-${targetId}`) {
+                    f.style.display = 'none';
+                }
+            });
+
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+
+            if (form.style.display === 'block') {
+                form.querySelector('textarea').focus();
+            }
+        });
+    });
+
+            // 新增删除功能的JavaScript代码
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type'); // 'message' 或 'reply'
+                    const id = this.getAttribute('data-id');
+                    const url = this.getAttribute('data-url');
+
+                    if (confirm(`确定要删除这条${type === 'message' ? '留言' : '回复'}吗？`)) {
+                        // 显示加载状态
+                        this.innerHTML = '<span class="loading"></span>';
+
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrf_token')
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // 删除成功，移除DOM元素
+                                if (type === 'message') {
+                                    document.querySelector(`.message-item[data-message-id="${id}"]`).remove();
+                                } else {
+                                    document.querySelector(`.reply-item[data-reply-id="${id}"]`).remove();
+                                }
+                                {#alert('删除成功');#}
+                            } else {
+                                throw new Error('删除失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('删除失败:', error);
+                            alert('删除失败，请稍后再试');
+                            // 恢复按钮状态
+                            this.textContent = '删除';
+                        });
+                    }
+                });
+            });
+        });
+
+        function updateLikeDisplay(heartElem, countElem, data) {
+            if (data.like_count > 0) {
+                countElem.textContent = data.like_count;
+                heartElem.textContent = '♥';
+                heartElem.classList.remove('empty');
+            } else {
+                countElem.textContent = '';
+                heartElem.textContent = '♡';
+                heartElem.classList.add('empty');
+            }
+
+            if (data.action === 'liked') {
+                heartElem.classList.add('liked');
+            } else {
+                heartElem.classList.remove('liked');
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+{% endblock %}

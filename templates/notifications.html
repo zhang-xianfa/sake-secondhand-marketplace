@@ -1,0 +1,125 @@
+
+{% extends 'base.html' %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>消息中心</h2>
+        <form action="{{ url_for('notification.mark_all_read') }}" method="post" class="ms-2">
+            <button type="submit" class="btn btn-sm btn-primary">
+                标记全部为已读
+            </button>
+        </form>
+    </div>
+
+    <ul class="nav nav-tabs" id="myMessageTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="comment-tab" data-bs-toggle="tab" data-bs-target="#commentMessages" type="button" role="tab" aria-controls="commentMessages" aria-selected="true">
+                评论我的
+                {% set unread_comments = comment_notifications | selectattr('is_read', '==', False) | list | length %}
+                {% if unread_comments > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-1">{{ unread_comments }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="private-chat-tab" data-bs-toggle="tab" data-bs-target="#privateChatMessages" type="button" role="tab" aria-controls="privateChatMessages" aria-selected="false">
+                私信
+                {% set unread_private_chats = private_chat_notifications | selectattr('is_read', '==', False) | list | length %}
+                {% if unread_private_chats > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-1">{{ unread_private_chats }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="general-tab" data-bs-toggle="tab" data-bs-target="#generalMessages" type="button" role="tab" aria-controls="generalMessages" aria-selected="false">
+                回复我的
+                {% set unread_general = general_notifications | selectattr('is_read', '==', False) | list | length %}
+                {% if unread_general > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-1">{{ unread_general }}</span>
+                {% endif %}
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3" id="myMessageTabContent">
+        {# 留言消息 Tab 内容 #}
+        <div class="tab-pane fade show active" id="commentMessages" role="tabpanel" aria-labelledby="comment-tab">
+            <ul class="list-group">
+                {% for notice in comment_notifications %}
+                    <li class="list-group-item {% if not notice.is_read %}list-group-item-info{% endif %} p-3">
+                        <strong>{{ notice.message }}</strong><br>
+                        来⾃: {{ notice.sender_username }} 于 {{ notice.create_time.strftime('%Y-%m-%d %H:%M') }}
+                        {% if notice.goods_id %}
+                            <small class="text-muted"> (商品: <a href="{{ url_for('goods.goods_detail', goods_id=notice.goods_id) }}">{{ notice.goods_title }}</a>)</small>
+                        {% endif %}
+                        {% if not notice.is_read %}
+                            <a href="{{ url_for('notification.mark_read', notification_id=notice.id) }}" class="btn btn-sm btn-primary ms-3">标记已读</a>
+                        {% endif %}
+                        {# 如果需要跳转到留言所在的商品详情页 #}
+                        {% if notice.goods_id %}
+                            <a href="{{ url_for('goods.goods_detail', goods_id=notice.goods_id) }}#comment_section" class="btn btn-sm btn-secondary ms-2">查看留言</a>
+                        {% endif %}
+
+                        <!-- 直接回复留言的表单 -->
+                        <form action="{{ url_for('notification.reply', notification_id=notice.id) }}" method="post" class="mt-3">
+                            <div class="mb-2">
+                                <textarea
+                                    name="reply_content"
+                                    class="form-control"
+                                    rows="2"
+                                    placeholder="输入回复内容..."
+                                    required
+                                    style="resize: vertical;"
+                                ></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-success">回复</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="list-group-item p-3">暂⽆留言通知</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {# 私信消息 Tab 内容 #}
+        <div class="tab-pane fade" id="privateChatMessages" role="tabpanel" aria-labelledby="private-chat-tab">
+            <ul class="list-group">
+                {% for notice in private_chat_notifications %}
+                    <li class="list-group-item {% if not notice.is_read %}list-group-item-info{% endif %} p-3">
+                        <strong>{{ notice.message }}</strong><br>
+                        来⾃: {{ notice.sender_username }} 于 {{ notice.create_time.strftime('%Y-%m-%d %H:%M') }}
+                        {% if notice.goods_title %} {# 如果私信与特定商品相关，显示商品标题 #}
+                            <small class="text-muted"> (关于商品: {{ notice.goods_title }})</small>
+                        {% endif %}
+                        {% if not notice.is_read %}
+                            <a href="{{ url_for('notification.mark_read', notification_id=notice.id) }}" class="btn btn-sm btn-primary ms-3">标记已读</a>
+                        {% endif %}
+                        {# 私信通知跳转到对应会话 #}
+                        {% if notice.conversation_id %}
+                            <a href="{{ url_for('chat.chat_room', conversation_id=notice.conversation_id) }}" class="btn btn-sm btn-secondary ms-2">进入私信</a>
+                        {% endif %}
+                    </li>
+                {% else %}
+                    <li class="list-group-item p-3">暂⽆私信通知</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {# 其他通知 Tab 内容 #}
+        <div class="tab-pane fade" id="generalMessages" role="tabpanel" aria-labelledby="general-tab">
+            <ul class="list-group">
+                {% for notice in general_notifications %}
+                    <li class="list-group-item {% if not notice.is_read %}list-group-item-info{% endif %} p-3">
+                        <strong>{{ notice.message }}</strong><br>
+                        来⾃: {{ notice.sender_username }} 于 {{ notice.create_time.strftime('%Y-%m-%d %H:%M') }}
+                        {% if not notice.is_read %}
+                            <a href="{{ url_for('notification.mark_read', notification_id=notice.id) }}" class="btn btn-sm btn-primary ms-3">标记已读</a>
+                        {% endif %}
+                        {# 如果需要关联到其他页面，根据 notice.type 和 related_id 决定 #}
+                    </li>
+                {% else %}
+                    <li class="list-group-item p-3">暂⽆其他通知</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

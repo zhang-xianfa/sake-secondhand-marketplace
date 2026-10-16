@@ -1,0 +1,11 @@
+{#头像上传#}
+{% extends 'base.html' %}
+{% block content %}
+    <h3>⽤户中⼼</h3>
+    <img src="{{ current_user.avatar or url_for('static', filename='default_avatar.png') }}" alt="头像" width="120"><br><br>
+    <label>上传新头像：</label>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="avatar" class="form-control mb-2">
+        <button type="submit" class="btn btn-primary">上传</button>
+    </form>
+{% endblock %}

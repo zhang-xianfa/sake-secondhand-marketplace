@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+    <h3 class="mb-3">后台管理</h3>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#categories">分类管理</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#goods">商品管理</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#messages">留言管理</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- 分类管理 -->
+        <div class="tab-pane fade show active" id="categories">
+            <form method="post" action="{{ url_for('admin.add_category') }}" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="name" class="form-control" placeholder="新分类名称" required>
+                    <button type="submit" class="btn btn-primary">添加分类</button>
+                </div>
+            </form>
+
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="15%">ID</th>
+                        <th>分类名称</th>
+                        <th width="20%">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin.delete_category', category_id=category.id) }}">
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 商品管理（仅查看和删除） -->
+        <div class="tab-pane fade" id="goods">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="15%">ID</th>
+                        <th>商品名称</th>
+                        <th>分类</th>
+                        <th width="20%">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in goods %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.category.name if item.category else '-' }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin.delete_goods', goods_id=item.id) }}">
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="tab-pane fade" id="messages">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="10%">ID</th>
+                        <th width="20%">商品</th>
+                        <th width="15%">用户</th>
+                        <th>留言内容</th>
+                        <th width="15%">时间</th>
+                        <th width="10%">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr>
+                        <td>{{ message.id }}</td>
+                        <td>
+                            {% if message.goods %}
+                            <a href="{{ url_for('goods.goods_detail', goods_id=message.goods.id) }}">
+                                {{ message.goods.title|truncate(15) }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">商品已删除</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ message.user.username }}</td>
+                        <td>{{ message.content }}</td>
+                        <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin.delete_message', message_id=message.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('确定要删除这条留言吗？')">
+                                    删除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">暂无留言</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="mb-4">编辑商品</h2>
+
+        <form method="post" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label class="form-label">标题</label>
+                <input type="text" name="title" class="form-control" value="{{ goods.title }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">描述</label>
+                <textarea name="description" class="form-control" rows="4">{{ goods.description }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">价格</label>
+                <input type="number" step="0.01" name="price" class="form-control" value="{{ goods.price }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">成⾊</label>
+                <input type="text" name="condition" class="form-control" value="{{ goods.condition }}">
+        </div>
+
+            <div class="mb-3">
+                <label class="form-label">图⽚ URL</label>
+                <input type="text" name="image_url" class="form-control" value="{{ goods.image_url }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">分类</label>
+                <select name="category_id" class="form-select">
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if cat.id == goods.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">更新商品</button>
+            <a href="{{ url_for('index.index') }}" class="btn btn-secondary">取消</a>
+        </form>
+    </div>
+{% endblock %}

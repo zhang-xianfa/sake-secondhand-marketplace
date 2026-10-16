@@ -1,0 +1,28 @@
+{# templates/chat_list.html #}
+{% extends 'base.html' %}
+{% block content %}
+    <h2 class="mb-4">我的私信</h2>
+    <div class="list-group">
+        {% for conv in conversations %}
+            {# 确定对话的另一方用户 #}
+            {% set other_user = conv.user1 if conv.user2_id == current_user.id else conv.user2 %}
+            <a href="{{ url_for('chat.chat_room', conversation_id=conv.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>与 {{ other_user.username }} 的对话</strong>
+                    {% if conv.goods %}
+                        <small class="text-muted"> (关于商品: {{ conv.goods.title }})</small>
+                    {% endif %}
+                    <br>
+                    <small class="text-muted">最后消息: {{ conv.last_message_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                {# 显示未读消息数量，只统计对方发送且未读的消息 #}
+                {% set unread_messages_count = conv.messages | selectattr('is_read', '==', False) | selectattr('sender_id', '!=', current_user.id) | list | length %}
+                {% if unread_messages_count > 0 %}
+                    <span class="badge bg-danger rounded-pill">{{ unread_messages_count }}</span>
+                {% endif %}
+            </a>
+        {% else %}
+            <p>您还没有任何私信。</p>
+        {% endfor %}
+    </div>
+{% endblock %}

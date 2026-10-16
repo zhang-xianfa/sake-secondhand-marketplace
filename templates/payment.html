@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}支付订单 - 校园交易平台{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">订单支付</h4>
+                </div>
+
+                <div class="card-body">
+                    <!-- 交易进度 -->
+                    <div class="transaction-progress mb-5">
+                        <div class="row">
+                            <div class="col-3 text-center">
+                                <div class="progress-step active">1</div>
+                                <div class="step-label">确认交易</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="progress-step active">2</div>
+                                <div class="step-label">选择支付方式</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="progress-step">3</div>
+                                <div class="step-label">支付完成</div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="progress-step">4</div>
+                                <div class="step-label">完成交易</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 订单信息 -->
+                    <div class="border rounded p-4 mb-5">
+                        <h5 class="mb-3">订单信息</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                {% set first_image = order.goods.images|sort(attribute='order')|first %}
+                                {% if first_image %}
+                                    {# first_image.image_url 已经是完整的 /static/路径，不需要再包一层 url_for('static', ...) #}
+                                    <img src="{{ first_image.image_url }}" alt="{{ order.goods.title }}" class="img-fluid">
+                                {% else %}
+                                    {# 如果没有图片，显示默认图片 #}
+                                    <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片" class="img-fluid">
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-9">
+                                <h6 class="font-weight-bold">{{ order.goods.title }}</h6>
+                                <p class="text-muted mb-1">订单编号: {{ order.order_no }}</p>
+                                <p class="text-muted mb-1">创建时间: {{ order.create_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p class="text-danger font-weight-bold mt-3">支付金额: ¥{{ order.amount }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 支付方式 -->
+                    <div class="mb-5">
+                        <h5 class="mb-3">选择支付方式</h5>
+                        <!-- 关键修复：将 endpoint 从 payment.process_payment 改为 payment.submit_payment -->
+                        <form method="POST" action="{{ url_for('payment.submit_payment', order_id=order.id) }}" class="payment-form">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="wechat" value="wechat" checked>
+                                <label class="form-check-label" for="wechat">
+                                    <i class="fab fa-weixin text-success mr-2"></i> 微信支付
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="alipay" value="alipay">
+                                <label class="form-check-label" for="alipay">
+                                    <i class="fab fa-alipay text-primary mr-2"></i> 支付宝
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="cash" value="cash">
+                                <label class="form-check-label" for="cash">
+                                    <i class="fas fa-money-bill-wave text-warning mr-2"></i> 当面交易（线下支付）
+                                </label>
+                            </div>
+
+                            <!-- 支付按钮 -->
+                            <div class="d-flex justify-content-between mt-5">
+                                <a href="{{ url_for('goods.goods_detail', goods_id=order.goods.id) }}" class="btn btn-secondary px-5">
+                                    <i class="fas fa-arrow-left me-1"></i> 返回商品详情
+                                </a>
+                                <button type="submit" class="btn btn-success px-5">
+                                    确认支付 <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 支付提示 -->
+                <div class="card-footer bg-light">
+                    <div class="alert alert-info mb-0">
+                        <h6 class="mb-2"><i class="fas fa-info-circle me-1"></i> 支付提示</h6>
+                        <ul class="mb-0">
+                            <li>请在24小时内完成支付，超时订单将自动取消</li>
+                            <li>支付完成后，请等待卖家确认发货或安排交易</li>
+                            <li>如遇支付问题，请联系平台客服</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 交易进度样式 */
+.transaction-progress {
+    margin-top: 20px;
+}
+
+.progress-step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.progress-step.active {
+    background-color: #28a745;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.transaction-progress .col-3:not(:last-child) .progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: -1;
+
+}
+
+.transaction-progress .col-3:not(:last-child) .progress-step.active::after {
+    background-color: #28a745;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .step-label {
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}

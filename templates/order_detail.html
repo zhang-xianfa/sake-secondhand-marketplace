@@ -1,0 +1,132 @@
+{# templates/payment/order_detail.html #}
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - 校园交易平台{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">订单详情 <span class="badge bg-secondary ms-2">#{{ order.order_no }}</span></h4>
+                </div>
+
+                <div class="card-body">
+                    <!-- 订单信息 -->
+                    <div class="border rounded p-4 mb-4">
+                        <h5 class="mb-3">商品信息</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                {% set first_image = order.goods.images|sort(attribute='order')|first %}
+                                {% if first_image %}
+                                    <img src="{{ first_image.image_url }}" alt="{{ order.goods.title }}" class="img-fluid rounded">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片" class="img-fluid rounded">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <h6 class="font-weight-bold">{{ order.goods.title }}</h6>
+                                <p class="text-muted mb-1">价格: ¥{{ order.amount }}</p>
+                                <p class="mb-1">卖家: {{ order.seller.username }}</p>
+                                <p class="mb-1">买家: {{ order.buyer.username }}</p>
+                                <p class="mb-1">订单状态:
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">待支付</span>
+                                    {% elif order.status == 'paid' %}
+                                        <span class="badge bg-info text-dark">已支付</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-success">已完成</span>
+                                    {% elif order.status == 'canceled' %}
+                                        <span class="badge bg-danger">已取消</span>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1">创建时间: {{ order.create_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                                {% if order.paid_time %}<p class="text-muted mb-1">支付时间: {{ order.paid_time.strftime('%Y-%m-%d %H:%M') }}</p>{% endif %}
+                                {% if order.completed_time %}<p class="text-muted mb-1">完成时间: {{ order.completed_time.strftime('%Y-%m-%d %H:%M') }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 支付信息（如果已支付） -->
+                    {% if order.status != 'pending' %}
+                    <div class="border rounded p-4 mb-4">
+                        <h5 class="mb-3">支付信息</h5>
+                        <p class="mb-1">支付单号: {{ order.payment.payment_no if order.payment else 'N/A' }}</p>
+                        <p class="mb-1">支付方式: {{ order.payment.payment_method if order.payment else 'N/A' }}</p>
+                        <p class="mb-0">支付时间: {{ order.payment.payment_time.strftime('%Y-%m-%d %H:%M') if order.payment else 'N/A' }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- 评价区域 -->
+                    <div class="border rounded p-4 mb-4">
+                        <h5 class="mb-3">交易评价</h5>
+                        {% if order.status == 'completed' %}
+                            {% if order.is_reviewed %}
+                                {# 已评价，显示评价内容 #}
+                                {% if order.review %} {# 确保 review 对象存在 #}
+                                    <div class="alert alert-success">
+                                        您已评价此订单。
+                                        <p class="mb-1"><strong>评分:</strong>
+                                            {# 循环显示星级图标 #}
+                                            {% for i in range(order.review.rating) %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% endfor %}
+                                            {% for i in range(5 - order.review.rating) %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endfor %}
+                                        </p>
+                                        <p class="mb-1"><strong>评价内容:</strong> {{ order.review.content or '无' }}</p>
+                                        <p class="mb-0 text-muted small">评价时间: {{ order.review.create_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    </div>
+                                {% else %}
+                                    <p class="text-danger">订单已完成，但未找到评价信息。可能数据异常。</p>
+                                {% endif %}
+                            {% else %}
+                                {# 未评价 #}
+                                {% if current_user.id == order.buyer_id %}
+                                    <div class="alert alert-info">
+                                        <p>订单已完成，请对本次交易进行评价。</p>
+                                        <a href="{{ url_for('payment.leave_review', order_id=order.id) }}" class="btn btn-success">去评价</a>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-secondary">
+                                        <p>买家尚未评价此订单。</p>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-secondary">
+                                <p>订单完成后可进行评价。</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('payment.my_orders') }}" class="btn btn-secondary px-4">
+                            <i class="fas fa-arrow-left me-1"></i> 返回我的订单
+                        </a>
+                        {# 卖家：订单已支付，显示“标记为完成”按钮 #}
+                        {% if current_user.id == order.seller_id and order.status == 'paid' %}
+                            <form action="{{ url_for('payment.complete_order', order_id=order.id) }}" method="post" onsubmit="return confirm('确定要标记此订单为完成吗？请确认交易已成功。');">
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="fas fa-check-circle me-1"></i> 标记为完成
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{# 引入 Font Awesome 图标库，用于星星评分 #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+/* ... (existing styles from payment.html) ... */
+</style>
+{% endblock %}

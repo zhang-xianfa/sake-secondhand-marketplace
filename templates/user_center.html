@@ -1,0 +1,136 @@
+{# templates/user_center.html #}
+{% extends 'base.html' %}
+{% block content %}
+    <h3>用户中心 - {{ current_user.username }}</h3>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="goods-tab" data-bs-toggle="tab" data-bs-target="#goods">我的发布</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments">我的留言</button>
+        </li>
+        <!-- 新增：收藏标签 -->
+        <li class="nav-item">
+            <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites">我的收藏</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#edit">修改信息</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload">头像上传</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#logout">退出登录</button>
+        </li>
+    </ul>
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="goods">
+            {% for g in my_goods %}
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row"> {# 【修改点8-1：新增 row】 #}
+                            <div class="col-md-2"> {# 【修改点8-2：新增图片列】 #}
+                                {% if g.images %}
+                                    <img src="{{ g.images[0].image_url }}" alt="{{ g.title }}"
+                                         class="img-fluid" style="max-height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片"
+                                         class="img-fluid" style="max-height: 100px; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-7"> {# 【修改点8-3：调整内容列宽度】 #}
+                                <h5>{{ g.title }}</h5>
+                                <p>￥{{ g.price }} | {{ g.condition }} | {{ g.create_time.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                            <div class="col-md-3"> {# 【修改点8-4：调整操作列宽度】 #}
+                                <a href="/goods/{{ g.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+                                <a href="/goods/edit/{{ g.id }}" class="btn btn-sm btn-success">编辑</a>
+                                <form action="/goods/delete/{{ g.id }}" method="POST" style="display:inline;">
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('确定要删除吗？')">删除</button>
+                                </form>
+                                <a href="{{ url_for('goods.toggle_goods_status', goods_id=g.id) }}" >
+                                     {% if g.is_sold %} <span class="btn btn-sm btn-warning">上架</span> {% else %} <span class="btn btn-sm btn-danger">下架</span> {% endif %}
+                                </a>
+                            </div>
+                        </div> {# 【修改点8-5：关闭 row】 #}
+                    </div>
+                </div>
+            {% else %}
+                <p>你还没有发布任何商品。</p>
+            {% endfor %}
+        </div>
+        <div class="tab-pane fade" id="comments">
+            {# ... (我的留言部分不变) ... #}
+            {% for msg in my_messages %}
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <p>{{ msg.content }}</p>
+                        <small>留言于<a href="/goods/{{ msg.goods.id }}">{{ msg.goods.title }}</a></small>
+                    </div>
+                </div>
+            {% else %}
+                <p>你还没有发布任何留言。</p>
+            {% endfor %}
+        </div>
+        <!-- 收藏内容区域 -->
+        <div class="tab-pane fade" id="favorites">
+            {% if my_favorites %}
+                {% for goods in my_favorites %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    {# 【修改点8-6：收藏商品图片显示】 #}
+                                    {% if goods.images %}
+                                        <img src="{{ goods.images[0].image_url }}" alt="{{ goods.title }}"
+                                             class="img-fluid" style="max-height: 100px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片"
+                                             class="img-fluid" style="max-height: 100px; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-7">
+                                    <h5>{{ goods.title }}</h5>
+                                    <p>￥{{ goods.price }} | {{ goods.condition }}</p>
+                                    <p><small>发布时间：{{ goods.create_time.strftime('%Y-%m-%d') }}</small></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/goods/{{ goods.id }}" class="btn btn-sm btn-outline-primary">查看商品</a>
+                                    <a href="{{ url_for('goods.unfavorite', goods_id=goods.id) }}"
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('确定要取消收藏吗？')">取消收藏</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>你还没有收藏任何商品。</p>
+            {% endif %}
+        </div>
+
+        {# ... (其他Tab内容不变) ... #}
+        <div class="tab-pane fade" id="upload">
+            <div class="card mb-2">
+                <div class="card-body">
+                    <a href="/profile/avatars">头像上传</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="logout">
+            <div class="card mb-2">
+                <div class="card-body">
+                    <a href="/logout">退出登录</a>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="edit">
+            <div class="card mb-2">
+                <div class="card-body">
+                    <a href="{{url_for('profile.edit_profile') }}">修改信息</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

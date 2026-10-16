@@ -1,0 +1,155 @@
+{# templates/chat_room.html #}
+{% extends 'base.html' %}
+{% block content %}
+    <h2 class="mb-4">与 {{ other_user.username }} 的对话</h2>
+    {% if conversation.goods %}
+        <p class="text-muted">关于商品: <a href="{{ url_for('goods.goods_detail', goods_id=conversation.goods.id) }}">{{ conversation.goods.title }}</a></p>
+    {% endif %}
+
+    <div class="card mb-3" style="height: 500px; overflow-y: scroll;" id="chat-messages-container">
+        <div class="card-body" id="message-list">
+            {% for msg in messages %}
+                <div class="d-flex mb-2 {% if msg.sender_id == current_user.id %}justify-content-end{% endif %}">
+                    <div class="card {% if msg.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 75%;">
+                        <div class="card-body p-2">
+                            <small class="text-muted d-block {% if msg.sender_id == current_user.id %}text-white-50{% endif %}">{{ msg.sender.username }} 于 {{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                            <p class="mb-0">{{ msg.content }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center text-muted" id="no-message-hint">还没有消息，开始对话吧！</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <form method="post" action="{{ url_for('chat.send_message', conversation_id=conversation.id) }}" id="message-form">
+        <div class="input-group">
+            <textarea class="form-control" name="content" rows="3" placeholder="输入你的消息..." required></textarea>
+            <button class="btn btn-primary" type="submit">发送</button>
+        </div>
+    </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageList = document.getElementById('message-list');
+        const noMessageHint = document.getElementById('no-message-hint');
+        const chatContainer = document.getElementById('chat-messages-container');
+
+        // 滚动到底部
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 页面加载时滚动到底部
+        scrollToBottom();
+
+        // 监听 WebSocket 实时消息
+        {% if current_user.is_authenticated %}
+            var socket = io(); // 已经在 base.html 引入了 Socket.IO 客户端
+
+            socket.on('new_private_message', function(data) {
+                // 确保消息属于当前对话
+                if (data.conversation_id === {{ conversation.id }}) {
+                    if (noMessageHint) {
+                        noMessageHint.remove(); // 移除“还没有消息”提示
+                    }
+
+                    const isCurrentUser = data.sender_id === {{ current_user.id }};
+                    const messageClass = isCurrentUser ? 'justify-content-end' : '';
+                    const cardBgClass = isCurrentUser ? 'bg-primary text-white' : 'bg-light';
+                    const timeTextColorClass = isCurrentUser ? 'text-white-50' : '';
+
+                    const newMessageHtml = `
+                        <div class="d-flex mb-2 ${messageClass}">
+                            <div class="card ${cardBgClass}" style="max-width: 75%;">
+                                <div class="card-body p-2">
+                                    <small class="text-muted d-block ${timeTextColorClass}">${data.sender_username} 于 ${data.timestamp}</small>
+                                    <p class="mb-0">${data.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    messageList.insertAdjacentHTML('beforeend', newMessageHtml);
+                    scrollToBottom(); // 新消息到来时滚动到底部
+
+                    // 如果接收到对方的消息，可以考虑异步请求标记为已读
+                    if (!isCurrentUser) {
+                        // 刷新未读数，但由于这里是聊天室，通常已读会在页面加载时处理
+                        // 如果需要更精细的实时未读状态，可能需要额外的API或WebSocket事件
+                    }
+                }
+            });
+        {% endif %}
+
+        // 阻止表单默认提交，使用 AJAX 发送消息（可选，但提供更流畅的体验）
+        const messageForm = document.getElementById('message-form');
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const textarea = messageForm.querySelector('textarea[name="content"]');
+            const content = textarea.value.trim();
+
+            if (content) {
+                fetch(messageForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `content=${encodeURIComponent(content)}`
+                })
+                .then(response => {
+                    if(response.ok){
+                        textarea.value = "";
+                    }else{
+                        throw new Error('Network error');
+                    }
+                })
+                .then(data => {
+                    // 成功发送后清空输入框
+                    textarea.value = '';
+                    // 消息会通过 WebSocket 实时推送到当前页面，所以这里不需要手动添加
+                    // 如果后端没有通过 WebSocket 推送，这里才需要手动添加
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    alert('消息发送失败，请重试。');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+
+{# templates/chat_room.html #}
+{#{% extends 'base.html' %}#}
+{#{% block content %}#}
+{#    <h2 class="mb-4">与 {{ other_user.username }} 的对话</h2>#}
+{#    {% if conversation.goods %}#}
+{#        <p class="text-muted">关于商品: <a href="{{ url_for('goods.goods_detail', goods_id=conversation.goods.id) }}">{{ conversation.goods.title }}</a></p>#}
+{#    {% endif %}#}
+{##}
+{#    <div class="card mb-3" style="height: 500px; overflow-y: scroll;">#}
+{#        <div class="card-body">#}
+{#            {% for msg in messages %}#}
+{#                <div class="d-flex mb-2 {% if msg.sender_id == current_user.id %}justify-content-end{% endif %}">#}
+{#                    <div class="card {% if msg.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 75%;">#}
+{#                        <div class="card-body p-2">#}
+{#                            <small class="text-muted d-block {% if msg.sender_id == current_user.id %}text-white-50{% endif %}">{{ msg.sender.username }} 于 {{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>#}
+{#                            <p class="mb-0">{{ msg.content }}</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% else %}#}
+{#                <p class="text-center text-muted">还没有消息，开始对话吧！</p>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <form method="post" action="{{ url_for('chat.send_message', conversation_id=conversation.id) }}">#}
+{#        <div class="input-group">#}
+{#            <textarea class="form-control" name="content" rows="3" placeholder="输入你的消息..." required></textarea>#}
+{#            <button class="btn btn-primary" type="submit">发送</button>#}
+{#        </div>#}
+{#    </form>#}
+{#{% endblock %}#}

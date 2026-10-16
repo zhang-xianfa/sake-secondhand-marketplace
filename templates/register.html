@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center pt-2">
+    <div class="card shadow-sm p-5" style="width: 600px; border-radius: 20px;">
+        <div class="card-body p-4">
+          <h3 class="card-title text-center mb-4">注册账户</h3>
+        <form method="post">
+            <div class="mb-3">
+                <label>⽤户名</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>密码</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>学号</label>
+                <input type="text" name="student_id" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label>院系</label>
+                <input type="text" name="department" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label>邮箱</label>
+                <input type="email" name="email" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label>电话</label>
+                <input type="text" name="phone" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mt-4">注册</button>
+        </form>
+        </div>
+    </div>
+  </div>
+</div>
+ {% endblock %}

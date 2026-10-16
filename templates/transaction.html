@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- 交易进度指示器 -->
+    <div class="transaction-progress mb-5">
+        <div class="row">
+            <div class="col-3 text-center">
+                <div class="progress-step active">1</div>
+                <div class="step-label">确认交易</div>
+            </div>
+            <div class="col-3 text-center">
+                <div class="progress-step">2</div>
+                <div class="step-label">卖家确认</div>
+            </div>
+            <div class="col-3 text-center">
+                <div class="progress-step">3</div>
+                <div class="step-label">完成交易</div>
+            </div>
+            <div class="col-3 text-center">
+                <div class="progress-step">4</div>
+                <div class="step-label">评价</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-lg rounded-lg overflow-hidden">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">交易确认 - {{ goods.title }}</h3>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="row">
+                <!-- 商品信息 -->
+                <div class="col-md-6 border-right">
+                    <div class="p-5">
+                        <h5 class="text-muted mb-4">商品信息</h5>
+
+                        <div class="goods-image-container mb-4">
+                            {% set first_image = goods.images|sort(attribute='order')|first %}
+                            {% if first_image %}
+                                <img src="{{ first_image.image_url }}" alt="{{ goods.title }}" class="img-fluid rounded">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='default_goods_image.png') }}" alt="无图片" class="img-fluid rounded">
+                            {% endif %}
+                        </div>
+
+
+                        <div class="goods-info">
+                            <h4 class="mb-3">{{ goods.title }}</h4>
+                            <p class="text-muted mb-2">{{ goods.description }}</p>
+                            <div class="mb-2">
+                                <span class="badge bg-secondary">{{ goods.condition }}</span>
+                            </div>
+                            <p class="text-muted small mb-4">发布时间: {{ goods.create_time.strftime('%Y-%m-%d') }}</p>
+
+                            <div class="price-display mb-4">
+                                <span class="currency">¥</span>
+                                <span class="price">{{ goods.price }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 交易信息表单 -->
+                <div class="col-md-6">
+                    <div class="p-5">
+
+                        <h5 class="text-muted mb-4">交易信息</h5>
+
+                        <<form method="POST" class="transaction-form" action="{{ url_for('payment.create_order', goods_id=goods.id) }}">
+                            <!-- 卖家信息 -->
+                            <div class="seller-info mb-5 p-3 bg-light rounded">
+                                <h6>卖家信息</h6>
+                                <div class="d-flex align-items-center mt-2">
+                                    <img src="{{ goods.seller.avatar or '/static/images/default-avatar.png' }}"
+                                         alt="{{ goods.seller.username }}"
+                                         class="rounded-circle me-3"
+                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                    <div>
+                                        <p class="mb-0"><strong>{{ goods.seller.username }}</strong></p>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-phone-alt me-1"></i> {{ goods.seller.phone or '未提供' }}
+                                        </p>
+                                        <p class="text-muted small">
+                                            <i class="fas fa-envelope me-1"></i> {{ goods.seller.email or '未提供' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 交易方式 -->
+                            <div class="form-group mb-4">
+                                <label for="transaction_method" class="form-label">交易方式 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="transaction_method" name="transaction_method" required>
+                                    <option value="">请选择交易方式</option>
+                                    <option value="face_to_face">当面交易</option>
+                                    <option value="express">快递邮寄</option>
+                                </select>
+
+                                <!-- 当面交易额外选项 -->
+                                <div id="face_to_face_options" class="mt-3 hidden">
+                                    <div class="form-group">
+                                        <label for="meeting_place" class="form-label">交易地点 <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="meeting_place" name="meeting_place"
+                                               placeholder="请填写具体交易地点">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label for="meeting_time" class="form-label">预计交易时间</label>
+                                        <input type="datetime-local" class="form-control" id="meeting_time" name="meeting_time">
+                                    </div>
+                                </div>
+
+                                <!-- 快递交易额外选项 -->
+                                <div id="express_options" class="mt-3 hidden">
+                                    <div class="form-group">
+                                        <label for="shipping_address" class="form-label">收货地址 <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="shipping_address" name="shipping_address"
+                                                  rows="2" placeholder="请填写详细收货地址"></textarea>
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label for="recipient_name" class="form-label">收件人姓名</label>
+                                        <input type="text" class="form-control" id="recipient_name" name="recipient_name"
+                                               placeholder="请填写收件人姓名">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label for="recipient_phone" class="form-label">收件人电话</label>
+                                        <input type="tel" class="form-control" id="recipient_phone" name="recipient_phone"
+                                               placeholder="请填写收件人联系电话">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 交易备注 -->
+                            <div class="form-group mb-4">
+                                <label for="message" class="form-label">给卖家留言</label>
+                                <textarea class="form-control" id="message" name="message" rows="3"
+                                          placeholder="请输入您的交易需求或疑问...例如：能否小刀？什么时候可以交易？"></textarea>
+                                <div class="form-text text-muted mt-1">请文明用语，友好沟通</div>
+                            </div>
+
+                            <!-- 确认信息 -->
+                            <div class="form-check mb-5">
+                                <input class="form-check-input" type="checkbox" id="agree_terms" name="agree_terms" required>
+                                <label class="form-check-label" for="agree_terms">
+                                    我已确认商品信息无误，将按照平台规则进行交易
+                                </label>
+                            </div>
+
+                            <!-- 操作按钮 -->
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('goods.goods_detail', goods_id=goods.id) }}"
+                                   class="btn btn-secondary px-5">
+                                    <i class="fas fa-arrow-left me-1"></i> 返回详情
+                                </a>
+                                <button type="submit" class="btn btn-success px-5">
+                                    确认发起交易 <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 交易提示 -->
+        <div class="card-footer bg-light">
+            <div class="alert alert-info mb-0">
+                <h6 class="mb-2"><i class="fas fa-info-circle me-1"></i> 交易提示</h6>
+                <ul class="mb-0">
+                    <li>请在交易前仔细检查商品质量，确认无误后再完成交易</li>
+                    <li>建议选择公共场所进行当面交易，确保人身财产安全</li>
+                    <li>平台仅提供交易信息对接，不参与资金流转，请谨慎交易</li>
+                    <li>如遇诈骗等可疑情况，请及时联系平台客服</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 交易进度样式 */
+.transaction-progress {
+    margin-top: 20px;
+}
+
+.progress-step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.progress-step.active {
+    background-color: #28a745;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.transaction-progress .col-3:not(:last-child) .progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: -1;
+}
+
+.transaction-progress .col-3:not(:last-child) .progress-step.active::after {
+    background-color: #28a745;
+}
+
+/* 商品图片容器 */
+.goods-image-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+}
+
+/* 价格样式 */
+.price-display {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.currency {
+    font-size: 0.9em;
+    margin-right: 5px;
+}
+
+/* 表单样式 */
+.transaction-form .form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+}
+
+.hidden {
+    display: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .col-md-6.border-right {
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .transaction-progress .step-label {
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 交易方式选择逻辑
+    const transactionMethod = document.getElementById('transaction_method');
+    const faceToFaceOptions = document.getElementById('face_to_face_options');
+    const expressOptions = document.getElementById('express_options');
+
+    transactionMethod.addEventListener('change', function() {
+        // 隐藏所有选项
+        faceToFaceOptions.classList.add('hidden');
+        expressOptions.classList.add('hidden');
+
+        // 根据选择显示对应选项
+        if (this.value === 'face_to_face') {
+            faceToFaceOptions.classList.remove('hidden');
+            // 为必填字段添加required属性
+            document.getElementById('meeting_place').required = true;
+            // 移除快递选项的必填属性
+            document.getElementById('shipping_address').required = false;
+        } else if (this.value === 'express') {
+            expressOptions.classList.remove('hidden');
+            // 为必填字段添加required属性
+            document.getElementById('shipping_address').required = true;
+            // 移除当面交易选项的必填属性
+            document.getElementById('meeting_place').required = false;
+        } else {
+            // 都不选时移除所有必填属性
+            document.getElementById('meeting_place').required = false;
+            document.getElementById('shipping_address').required = false;
+        }
+    });
+
+    // 表单提交前验证
+    document.querySelector('.transaction-form').addEventListener('submit', function(e) {
+        const method = transactionMethod.value;
+
+        // 检查是否选择了交易方式
+        if (!method) {
+            e.preventDefault();
+            alert('请选择交易方式');
+            transactionMethod.focus();
+            return false;
+        }
+
+        // 根据不同交易方式验证
+        if (method === 'face_to_face' && !document.getElementById('meeting_place').value.trim()) {
+            e.preventDefault();
+            alert('请填写交易地点');
+            document.getElementById('meeting_place').focus();
+            return false;
+        }
+
+        if (method === 'express' && !document.getElementById('shipping_address').value.trim()) {
+            e.preventDefault();
+            alert('请填写收货地址');
+            document.getElementById('shipping_address').focus();
+            return false;
+        }
+
+        // 确认提交
+        if (!confirm('确定要发起交易吗？发起后请等待卖家确认。')) {
+            e.preventDefault();
+            return false;
+        }
+
+        return true;
+    });
+});
+</script>
+{% endblock %}
