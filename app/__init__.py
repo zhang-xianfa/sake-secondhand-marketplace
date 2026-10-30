@@ -1,7 +1,6 @@
 
 # app/__init__.py
 import os
-from socket import SocketIO
 
 from flask import Flask,g
 # 导入蓝图
